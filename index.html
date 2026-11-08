@@ -151,6 +151,9 @@ function ultima(exId,antesDe){var s=sessoes(exId).filter(function(l){return l.da
 function resumo(series){return series.filter(Boolean).map(function(s){return s.reps+"×"+num(s.carga)}).join(" · ")}
 function maxCarga(l){return Math.max.apply(null,F(l).map(function(s){return s.carga}))}
 function volume(l){return F(l).reduce(function(a,s){return a+s.reps*s.carga},0)}
+var ac=null;
+function audio(){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C()}if(ac&&ac.state==="suspended")ac.resume()}catch(e){}}
+function bip(){if(S.som===false)return;audio();if(!ac)return;try{[0,0.3,0.6].forEach(function(t,i){var o=ac.createOscillator(),g=ac.createGain(),T=ac.currentTime+t;o.type="sine";o.frequency.value=i===2?1175:880;g.gain.setValueAtTime(0.0001,T);g.gain.exponentialRampToValueAtTime(0.5,T+0.02);g.gain.exponentialRampToValueAtTime(0.0001,T+0.24);o.connect(g);g.connect(ac.destination);o.start(T);o.stop(T+0.26)})}catch(e){}}
 var tmr;function aviso(t){var el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(tmr);tmr=setTimeout(function(){el.hidden=true},1800)}
 
 // ---------- estado de tela ----------
@@ -276,7 +279,8 @@ function telaExercicios(){
        '<div class="chips">'+[1,2,3,4,5,6,0].map(function(d){var on=(S.plan[d]||[]).indexOf(e.id)>=0;
         return'<button class="chip" data-a="dia-plano" data-id="'+e.id+'" data-d="'+d+'" aria-pressed="'+on+'">'+DIAS_C[d]+'</button>'}).join("")+'</div></div>';
   });
-  h+='<h2 style="margin:18px 0 8px">Backup</h2><div class="card"><p class="small muted" style="margin-top:0">Seus dados ficam só neste aparelho. Copie o texto abaixo e guarde (por exemplo, enviando para você mesmo) para não perder se limpar o navegador.</p>'+
+  h+='<div class="card"><label class="exrow" for="som" style="cursor:pointer"><input id="som" type="checkbox" style="width:24px;min-height:24px;flex:none"'+(S.som===false?'':' checked')+'><span style="flex:1">Tocar som quando o descanso acabar</span></label></div>'+
+     '<h2 style="margin:18px 0 8px">Backup</h2><div class="card"><p class="small muted" style="margin-top:0">Seus dados ficam só neste aparelho. Copie o texto abaixo e guarde (por exemplo, enviando para você mesmo) para não perder se limpar o navegador.</p>'+
      '<textarea id="bk" aria-label="Backup dos dados">'+esc(JSON.stringify(S))+'</textarea>'+
      '<div class="exrow" style="margin-top:8px"><button class="btn ghost" data-a="copiar">Copiar</button><button class="btn ghost" data-a="restaurar">Restaurar do texto</button></div></div>';
   return h;
@@ -293,6 +297,7 @@ function render(){
 // ---------- ações ----------
 function criarLog(data,ex){var l=logDe(data,ex);if(!l){l={data:data,ex:ex,series:[]};S.logs.push(l)}return l}
 document.addEventListener("click",function(ev){
+  audio();
   var b=ev.target.closest("[data-a]");if(!b||b.tagName==="INPUT")return;
   var a=b.dataset.a,id=b.dataset.id;
   if(a==="aba"){U.aba=b.dataset.t;window.scrollTo(0,0);render();return}
@@ -332,7 +337,8 @@ document.addEventListener("click",function(ev){
 });
 document.addEventListener("change",function(ev){
   var t=ev.target;
-  if(t.id==="data"&&t.value){U.data=t.value;render()}
+  if(t.id==="som"){S.som=t.checked;salvar();if(t.checked)bip()}
+  else if(t.id==="data"&&t.value){U.data=t.value;render()}
   else if(t.id==="progsel"){U.prog=t.value;render()}
   else if(t.dataset&&t.dataset.a==="cfg"){var e0=exDe(t.dataset.id),v0=parseInt(t.value,10);if(e0&&!isNaN(v0)&&v0>=0){e0[t.dataset.f]=v0;salvar();aviso("Salvo")}}
   else if(t.dataset&&t.dataset.a==="renomear"){var e=S.ex.find(function(x){return x.id===t.dataset.id});if(e&&t.value.trim()){e.nome=t.value.trim();salvar();aviso("Nome salvo")}}
@@ -340,7 +346,7 @@ document.addEventListener("change",function(ev){
 var rest=document.getElementById("rest"),fimMsg=0;
 setInterval(function(){
   if(U.timer){var s=Math.ceil((U.timer.fim-Date.now())/1000);
-    if(s<=0){U.timer=null;fimMsg=Date.now()+3000;try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}rest.hidden=false;rest.querySelector("span").textContent="Descanso acabou. Próxima série!";rest.querySelector("button").hidden=true;return}
+    if(s<=0){U.timer=null;fimMsg=Date.now()+3000;bip();try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}rest.hidden=false;rest.querySelector("span").textContent="Descanso acabou. Próxima série!";rest.querySelector("button").hidden=true;return}
     rest.hidden=false;rest.querySelector("button").hidden=false;
     rest.querySelector("span").textContent="Descanso "+Math.floor(s/60)+":"+String(s%60).padStart(2,"0")+" · "+U.timer.nome;
   }else if(Date.now()>fimMsg){rest.hidden=true}
