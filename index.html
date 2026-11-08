@@ -1,5 +1,13 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f5eff">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Meu Treino</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
 /* Layout: coluna única de celular, conteúdo rolando, barra de abas fixa embaixo */
@@ -14,6 +22,7 @@
 :root[data-theme="dark"]{
   --bg:#0e1621; --card:#17212e; --ink:#e8eef6; --muted:#93a1b3; --line:#27344a;
   --accent:#5b8cff; --accent-ink:#0b1220; --good:#34d399; --warn:#fb923c; --chip:#223049; color-scheme:dark}
+[hidden]{display:none!important}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;margin:0;
@@ -87,6 +96,8 @@ textarea{min-height:120px;font-size:13px;font-family:ui-monospace,monospace}
 @media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}}
 </style>
 
+</head>
+<body>
 <div id="app"></div>
 <nav class="tabs" id="tabs"></nav>
 <div class="toast" id="toast" hidden></div>
@@ -338,3 +349,5 @@ render();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){try{navigator.serviceWorker.register("sw.js")}catch(e){}}
 })();
 </script>
+</body>
+</html>
